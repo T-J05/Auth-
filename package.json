@@ -1,0 +1,16 @@
+{
+  "name": "auntenticacion",
+  "version": "1.0.0",
+  "description": "auntenticacion con tokens y utilizando cookies",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon ./src/index.js"
+  },
+  "author": "Jose",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1",
+    "prisma": "^5.21.1"
+  }
+}
