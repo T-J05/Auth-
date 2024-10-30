@@ -10,7 +10,11 @@
   "author": "Jose",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.1",
+    "@prisma/client": "^5.21.1",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "db-local": "^3.1.0",
     "prisma": "^5.21.1"
   }
 }
