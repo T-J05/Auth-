@@ -1,31 +1,19 @@
 import express from "express";
 import { PORT } from "./config.js";
-import { UserRepo } from "./repositorio/repoexample.js";
-
+import UserRepo from "./repositorio/Userepo.js";
+const repo = new UserRepo();
 const app = express();
 app.set('view engine','ejs')
 app.use(express.json())
-app.use(cookieParser())
+// app.use(cookieParser())
 
 app.get('/', (req,res) => {
     res.render('inicio',{username: "Jose"})
 })
-app.post("/registrar",async (req,res)=>{
-    const {username,password,email} = req.body
-    console.log(req.body)
-    try{
-        const id = await UserRepo.create({username,password,email})
-        res.send({ id })
-    }catch(error){
-        // Normalmente no es buena idea mandar el error del repositorio
-        res.status(400).send(error.message)
-    }
-});
+app.post("/registrar",repo.registrar);
 
 
-app.post("/login",(req,res)=>{
-    res.send("<h1>Hola mundo</h1>")
-});
+app.post("/login",repo.login);
 
 app.post("/logout",(req,res)=>{
     res.send("<h1>Hola mundo</h1>")
