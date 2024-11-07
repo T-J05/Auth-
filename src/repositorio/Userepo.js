@@ -1,9 +1,10 @@
-import crypto from 'node:crypto'
-import bcrypt from 'bcrypt'
+import crypto from 'node:crypto';
+import bcrypt from 'bcrypt';
 import { SALT_ROUDS } from "../config.js";
 import prisma from '../conexionDb.js';
-
-
+import jwt from "jsonwebtoken";
+import { SECRET_KEY } from "../config.js";
+import {CookieParser} from "cookie-parser";
 
 export default class UserRepo{
     constructor(){
@@ -55,29 +56,31 @@ export default class UserRepo{
         }
     async login(){
         try{
-            const {username,password,email,role} = req.body
+            const {sesion} = req.params 
+            const {username,password} = req.body
             const validacionUser = new Validaciones(username,3);
             validacionUser.validar();
             
             const validacionPassword = new Validaciones(password,6);
             validacionPassword.validar();
-            
-            const validacionCorreo = new Validaciones(email,8);
-            validacionCorreo.validar();
-
-            const validacionRole = new Validaciones(role,4);
-            validacionRole.validar();
     
             const user = await prisma.usuarios.findUnique({
                 where: { username }
             });
-            const token = 1234
-            if (user){
-                res.status(201).json({token})
+            console.log(user)
+           
+            if (user && user.password === password){
+                if (sesion === "token"){
+                    const token = jwt.sign({username: user.username,email: user.email},SECRET_KEY,{algorithm:"HS256",expiresIn: "1h"})
+                    res.send({token});
+                }
+                if (sesion === "cookies"){
+                    const cooki = res.setHeader()
+                }
             }
             else{
                 res.status(400).json(`eRROR CHAVAL`)
-            }
+            };
 
         }catch{
             res.status(400).json({error: error.message});

@@ -5,7 +5,8 @@ const repo = new UserRepo();
 const app = express();
 app.set('view engine','ejs')
 app.use(express.json())
-// app.use(cookieParser())
+
+app.use(cookieParser())
 
 app.get('/', (req,res) => {
     res.render('inicio',{username: "Jose"})
@@ -13,7 +14,7 @@ app.get('/', (req,res) => {
 app.post("/registrar",repo.registrar);
 
 
-app.post("/login",repo.login);
+app.post("/login/:sesion",repo.login);
 
 app.post("/logout",(req,res)=>{
     res.send("<h1>Hola mundo</h1>")
