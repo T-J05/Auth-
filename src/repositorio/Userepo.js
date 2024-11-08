@@ -4,7 +4,9 @@ import { SALT_ROUDS } from "../config.js";
 import prisma from '../conexionDb.js';
 import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../config.js";
-import {CookieParser} from "cookie-parser";
+import CookieParser from "cookie-parser";
+import session from "express-session";
+
 
 export default class UserRepo{
     constructor(){
@@ -54,6 +56,7 @@ export default class UserRepo{
                 res.status(400).json({error: error.message});
             }
         }
+
     async login(){
         try{
             const {sesion} = req.params 
@@ -68,14 +71,14 @@ export default class UserRepo{
                 where: { username }
             });
             console.log(user)
-           
-            if (user && user.password === password){
+            const verificado = await bcrypt.compare(password,user.password)
+            if (user && verificado){
                 if (sesion === "token"){
-                    const token = jwt.sign({username: user.username,email: user.email},SECRET_KEY,{algorithm:"HS256",expiresIn: "1h"})
+                    const token = jwt.sign({username: user.username,role: user.role },SECRET_KEY,{algorithm:"HS256",expiresIn: "1h"});
                     res.send({token});
                 }
                 if (sesion === "cookies"){
-                    const cooki = res.setHeader()
+                    
                 }
             }
             else{
