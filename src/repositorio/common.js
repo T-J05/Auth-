@@ -1,7 +1,7 @@
 import prisma from '../conexionDb.js';
 import rateLimit from 'express-rate-limit';
 
-const blacklist = new Set();
+export const blacklist = new Set();
 
 export default class Common{
     constructor(){
@@ -31,19 +31,27 @@ export default class Common{
         return blacklist.has(token);
     }
      
-    logout(req,res){
+    logout= (req,res)=> {
         const typeLogin = req.params.sesion
         const tokken = req.userT
+        const common = new Common();
+        console.log(typeLogin)
+        for (const elemento of blacklist) {
+            console.log({tokenplaga: elemento});
+        }
         try{
             if(typeLogin && typeLogin === 'token'){
-                this.agregarTokenBlackList(tokken)
+                common.agregarTokenBlackList(tokken)
                 if(req.Csrf){
                     const tokenCsrf = req.Csrf
-                    this.agregarTokenBlackList(tokenCsrf)
-                    console.log({tokenCsrf: tokenCsrf,tokken: tokken},'Puestos en lista negra ')
-                    res.status(201).json({tokenCsrf: tokenCsrf,tokken: tokken},'Puestos en lista negra ')
+                    common.agregarTokenBlackList(tokenCsrf)
+                    if (common.esTokenBlackListed(tokenCsrf)&& this.esTokenBlackListed(tokken)){
+                        console.log({tokenCsrf: tokenCsrf,tokken: tokken},'Puestos en lista negra ')
+                    }
+                   
+                    res.json({tokenCsrf: tokenCsrf,tokken: tokken},'Puestos en lista negra ')
                 }
-                console.log({tokenInBlackList: tokken})
+                
             }
             else if(typeLogin && typeLogin === 'cookies'){
 
@@ -62,7 +70,7 @@ export default class Common{
                     });
             }
         }catch(error){
-           res.status(444).json({error:"Error lastimosamente"})
+           res.status(444).json({error:"Error lastimosamente",error:error.message})
         }
     }
     

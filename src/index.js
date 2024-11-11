@@ -42,7 +42,7 @@ app.use(
 
 
 app.get('/', (req,res) => {
-    res.render('inicio',{username: "Jose"})
+    res.render("hola Jose")
 })
 
 app.post("/registrar",repo.registrar);
@@ -57,7 +57,7 @@ app.get("/admin",auth.autorizacion("admin"),common.vertodo);
 
 
 //cookies o token kp hina
-app.post("/logout/:sesion",auth.verificarCsrf,common.logout);
+app.post("/logout/:sesion",auth.verificarCsrf, common.logout);
 
 
 

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { SECRET_KEY } from '../config.js';
 import Common from './common.js';
+import { blacklist } from './common.js';
 
 const common = new Common();
 
@@ -10,12 +11,14 @@ export default class Auth {
     verificarToken(token) {
        
         try {
+            console.log(token)
             const ListaNegra = common.esTokenBlackListed(token)
-            console.log(ListaNegra)
+            
             if(ListaNegra){
-                throw Error(json("token en la lista negra"))
+                throw Error("token en la lista negra")
             }
             const tokenv = jwt.verify(token, SECRET_KEY);
+            console.log({tokenv:tokenv})
             return tokenv;
         } catch (error) {
             throw error;  
@@ -25,12 +28,16 @@ export default class Auth {
     autorizacion(rolRequerido) {
         return (req, res, next) => {
             const token = req.headers.authorization?.split(' ')[1]; 
+            const listb = common.esTokenBlackListed(token)
 
-            if (token) {
+            if (token && !listb) {
                 try {
                     const decoded = jwt.verify(token, SECRET_KEY);
-                    
+                    if (common.esTokenBlackListed(token)){
+                        res.send('Token en lista negra')
+                    }
                     if (decoded && decoded.role === rolRequerido) {
+                        
                         req.decoded = decoded
                         return next();
                     } else {
@@ -55,17 +62,23 @@ export default class Auth {
     verificarCsrf(req,res,next){
         const typeLogin = req.params.sesion
         const token = req.headers.authorization?.split(' ')[1];
-        // console.log(token)
+  
         const csrfTokenCliente = req.headers['csrf-token'];
 
         req.Csrf = csrfTokenCliente
-        if(common.agregarTokenBlackList(csrfTokenCliente)){
+        if(common.esTokenBlackListed(csrfTokenCliente)){
             return res.status(401).json({'token en lista negra': csrfTokenCliente})
         }
         try{
             if(typeLogin && typeLogin === 'token'){
-                const verficadoToken = this.verificarToken(token)
-                console.log(verficadoToken.csrfToken)
+
+                const ListaNegra = common.esTokenBlackListed(token)
+            
+                if(ListaNegra){
+                    throw Error("token en la lista negra")
+                 }
+                const verficadoToken = jwt.verify(token, SECRET_KEY)
+                // console.log(verficadoToken.csrfToken)
                 if (verficadoToken && verficadoToken.csrfToken === csrfTokenCliente){
                     req.userT = token
 
