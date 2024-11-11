@@ -4,8 +4,7 @@ import { SALT_ROUDS } from "../config.js";
 import prisma from '../conexionDb.js';
 import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../config.js";
-import CookieParser from "cookie-parser";
-import session from "express-session";
+import { Console } from 'node:console';
 
 
 export default class UserRepo{
@@ -57,7 +56,7 @@ export default class UserRepo{
             }
         }
 
-    async login(){
+    async login(req,res){
         try{
             const {sesion} = req.params 
             const {username,password} = req.body
@@ -71,21 +70,37 @@ export default class UserRepo{
                 where: { username }
             });
             console.log(user)
-            const verificado = await bcrypt.compare(password,user.password)
+            if (!user) {
+                return res.status(400).json({ error: 'Usuario no encontrado' });
+            }
+            const verificado = await bcrypt.compare(password, user.password);
+
             if (user && verificado){
                 if (sesion === "token"){
-                    const token = jwt.sign({username: user.username,role: user.role },SECRET_KEY,{algorithm:"HS256",expiresIn: "1h"});
-                    res.send({token});
+                    const csrfToken =crypto.randomBytes(24).toString('hex');
+                    const token = jwt.sign({username: user.username,role: user.role,csrfToken:csrfToken },SECRET_KEY,{algorithm:"HS256",expiresIn: "1h"});
+                    res.json({
+                        token: token,
+                        csrftoken: csrfToken,
+                        message: 'Usa el token en cada solicitud y el tokenCsrf para solicitudes que cambiarían el estado'
+                    });                    
                 }
                 if (sesion === "cookies"){
-                    
+                    req.session.username = username;
+                    req.session.role = user.role;
+                    const csrfToken = crypto.randomBytes(16).toString('hex');
+                    req.session.csrfToken = csrfToken;
+                    console.log( {jaja: req.session.csrfToken = csrfToken})
+                    console.log({tokencsrf: csrfToken})
+                    res.json({ message: 'Sesión iniciada correctamente.', tokencsrf: csrfToken });
+
                 }
             }
             else{
                 res.status(400).json(`eRROR CHAVAL`)
             };
 
-        }catch{
+        }catch(error){
             res.status(400).json({error: error.message});
         }
     }

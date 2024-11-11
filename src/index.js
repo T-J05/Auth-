@@ -3,20 +3,29 @@ import { PORT,SESSION_KEY } from "./config.js";
 import UserRepo from "./repositorio/Userepo.js";
 import https from "https";
 import fs from "fs"
-import cookieParser from "cookie-parser";
+import  Auth  from "./repositorio/validacion.js";
+import Common from "./repositorio/common.js";
+import session from "express-session";
 
-const app = express();
+
+
+const auth = new Auth();
+const common = new Common();
 const repo = new UserRepo();
 
-// Carga los archivos de clave y certificado
+const app = express();
+
 const options = {
-    key: fs.readFileSync('/home/penguin/Escritorio/penguin/Auth/src/server.key'),
-    cert: fs.readFileSync('/home/penguin/Escritorio/penguin/Auth/src/server.cert'),
+    // key: fs.readFileSync('/home/penguin/Escritorio/penguin/Auth/src/server.key'),
+    // cert: fs.readFileSync('/home/penguin/Escritorio/penguin/Auth/src/server.cert'),
+    key: fs.readFileSync('C:/Users/Usuario/Desktop/js/AuthT-J/Auth-/src/server.key'),
+    cert: fs.readFileSync('C:/Users/Usuario/Desktop/js/AuthT-J/Auth-/src/server.cert'),
   };
 
 app.set('view engine','ejs')
 app.use(express.json())
-app.use(cookieParser())
+app.use(express.urlencoded({ extended: true }));
+
 app.use(
     session({
       secret: SESSION_KEY, 
@@ -25,7 +34,7 @@ app.use(
       cookie: {
         httpOnly: true,  
         secure: true,   
-        maxAge: 24 * 60 * 60 * 1000,  //24 horas,
+        maxAge: 24 * 60 * 60 * 1000,  //24 horas
         sameSite: 'lax'
       },
     })
@@ -35,20 +44,21 @@ app.use(
 app.get('/', (req,res) => {
     res.render('inicio',{username: "Jose"})
 })
+
 app.post("/registrar",repo.registrar);
+//cookies o token kp hina
 app.post("/login/:sesion",repo.login);
 
+app.get("/user",auth.autorizacion('user'), (req,res)=>{
+    res.json("Buenas tardes User")
+})
+
+app.get("/admin",auth.autorizacion("admin"),common.vertodo);
 
 
+//cookies o token kp hina
+app.post("/logout/:sesion",auth.verificarCsrf,common.logout);
 
-app.post("/logout",(req,res)=>{
-    res.send("<h1>Hola mundo</h1>")
-});
-
-
-app.get("/vertodo",(req,res)=>{
-    res.send("<h1>Hola mundo</h1>")
-});
 
 
 
